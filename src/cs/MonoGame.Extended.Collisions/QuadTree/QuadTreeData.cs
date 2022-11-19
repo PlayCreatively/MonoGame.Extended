@@ -12,7 +12,7 @@ namespace MonoGame.Extended.Collisions
         public QuadtreeData(ICollisionActor target)
         {
             Target = target;
-            Bounds = target.Bounds;
+            Bounds = target.Shape;
         }
 
         public void RemoveParent(Quadtree parent)

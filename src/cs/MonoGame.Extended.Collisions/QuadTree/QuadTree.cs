@@ -87,7 +87,7 @@ namespace MonoGame.Extended.Collisions
         /// <param name="data">Data being inserted.</param>
         public void Insert(QuadtreeData data)
         {
-            var actorBounds = data.Target.Bounds;
+            var actorBounds = data.Target.Shape;
             
             // Object doesn't fit into this node.
             if (!NodeBounds.Intersects(actorBounds))

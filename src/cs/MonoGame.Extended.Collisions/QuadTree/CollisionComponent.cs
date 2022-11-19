@@ -14,6 +14,7 @@ namespace MonoGame.Extended.Collisions
     {
         private readonly Dictionary<ICollisionActor, QuadtreeData> _targetDataDictionary =
             new Dictionary<ICollisionActor, QuadtreeData>();
+        public IReadOnlyDictionary<ICollisionActor, QuadtreeData> CollisionActors => _targetDataDictionary;
 
         private readonly Quadtree _collisionTree;
 
@@ -42,7 +43,7 @@ namespace MonoGame.Extended.Collisions
                 value.RemoveFromAllParents();
 
                 var target = value.Target;
-                var collisions =_collisionTree.Query(target.Bounds);
+                var collisions =_collisionTree.Query(target.Shape);
 
                 // Generate list of collision Infos
                 foreach (var other in collisions)
@@ -54,7 +55,7 @@ namespace MonoGame.Extended.Collisions
                     };
 
                     target.OnCollision(collisionInfo);
-                    value.Bounds = value.Target.Bounds;
+                    value.Bounds = value.Target.Shape;
                 }
                 _collisionTree.Insert(value);
             }

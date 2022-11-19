@@ -5,7 +5,7 @@
     /// </summary>
     public interface ICollisionActor
     {
-        IShapeF Bounds { get; }
+        IShapeF Shape { get; }
 
         void OnCollision(CollisionEventArgs collisionInfo);
     }
