@@ -41,6 +41,10 @@ namespace MonoGame.Extended
             }
         }
 
+        public Vector2 HalfExtents => new Vector2(RadiusX, RadiusY);
+        public float HalfExtentsX => RadiusX;
+        public float HalfExtentsY => RadiusY;
+
         public bool Contains(float x, float y)
         {
             float xCalc = (float) (Math.Pow(x - Center.X, 2) / Math.Pow(RadiusX, 2));
