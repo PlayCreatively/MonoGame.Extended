@@ -113,18 +113,44 @@ namespace MonoGame.Extended.Collisions
         {
             switch (a)
             {
-                case RectangleF rectA when b is RectangleF rectB:
+                case BoundingRectangle rectA when b is BoundingRectangle rectB:
                     return PenetrationVector(rectA, rectB);
                 case CircleF circA when b is CircleF circB:
                     return PenetrationVector(circA, circB);
-                case CircleF circA when b is RectangleF rectB:
+                case CircleF circA when b is BoundingRectangle rectB:
                     return PenetrationVector(circA, rectB);
-                case RectangleF rectA when b is CircleF circB:
+                case BoundingRectangle rectA when b is CircleF circB:
                     return PenetrationVector(rectA, circB);
             }
 
             throw new NotSupportedException("Shapes must be either a CircleF or RectangleF");
         }
+
+        private static Vector2 PenetrationVector(BoundingRectangle rect1, BoundingRectangle rect2)
+        {
+            BoundingRectangle.Intersection(ref rect1, ref rect2, out BoundingRectangle intersectingRect);
+            Debug.Assert(intersectingRect != default,
+                "Violation of: !intersect.IsEmpty; Rectangles must intersect to calculate a penetration vector.");
+
+            Vector2 penetration;
+            if (intersectingRect.HalfExtentsX < intersectingRect.HalfExtentsY)
+            {
+                var d = rect1.Center.X < rect2.Center.X
+                    ? intersectingRect.Width
+                    : -intersectingRect.Width;
+                penetration = new Vector2(d, 0);
+            }
+            else
+            {
+                var d = rect1.Center.Y < rect2.Center.Y
+                    ? intersectingRect.Height
+                    : -intersectingRect.Height;
+                penetration = new Vector2(0, d);
+            }
+
+            return penetration;
+        }
+
 
         private static Vector2 PenetrationVector(RectangleF rect1, RectangleF rect2)
         {
