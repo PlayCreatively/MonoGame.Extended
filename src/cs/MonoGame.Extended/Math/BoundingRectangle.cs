@@ -26,11 +26,11 @@ namespace MonoGame.Extended
     /// <seealso cref="IEquatableByRef{T}" />
     [DebuggerDisplay("{" + nameof(DebugDisplayString) + ",nq}")]
     public struct BoundingRectangle : IEquatable<BoundingRectangle>,
-        IEquatableByRef<BoundingRectangle>
+        IEquatableByRef<BoundingRectangle>, IShapeF
     {
         /// <summary>
         ///     The <see cref="BoundingRectangle" /> with <see cref="Center" /> <see cref="Point2.Zero"/> and
-        ///     <see cref="HalfExtents" /> set to <see cref="Vector2.Zero"/>.
+        ///     <see cref="halfExtents" /> set to <see cref="Vector2.Zero"/>.
         /// </summary>
         public static readonly BoundingRectangle Empty = new BoundingRectangle();
 
@@ -39,11 +39,22 @@ namespace MonoGame.Extended
         /// </summary>
         public Point2 Center;
 
+        public Point2 Position
+        {
+            get => Center;
+            set => Center = value;
+        }
+
         /// <summary>
         ///     The distance from the <see cref="Center" /> point along both axes to any point on the boundary of this
         ///     <see cref="BoundingRectangle" />.
         /// </summary>
-        public Vector2 HalfExtents;
+        public Vector2 halfExtents;
+        public Vector2 HalfExtents => halfExtents;
+        public float HalfExtentsX => halfExtents.X;
+        public float HalfExtentsY => halfExtents.Y;
+        public float Width => halfExtents.X * 2f;
+        public float Height => halfExtents.Y * 2f;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="BoundingRectangle" /> structure from the specified centre
@@ -54,7 +65,7 @@ namespace MonoGame.Extended
         public BoundingRectangle(Point2 center, Size2 halfExtents)
         {
             Center = center;
-            HalfExtents = halfExtents;
+            this.halfExtents = halfExtents;
         }
 
         /// <summary>
@@ -67,7 +78,7 @@ namespace MonoGame.Extended
         public static void CreateFrom(Point2 minimum, Point2 maximum, out BoundingRectangle result)
         {
             result.Center = new Point2((maximum.X + minimum.X) * 0.5f, (maximum.Y + minimum.Y) * 0.5f);
-            result.HalfExtents = new Vector2((maximum.X - minimum.X) * 0.5f, (maximum.Y - minimum.Y) * 0.5f);
+            result.halfExtents = new Vector2((maximum.X - minimum.X) * 0.5f, (maximum.Y - minimum.Y) * 0.5f);
         }
 
         /// <summary>
@@ -131,9 +142,9 @@ namespace MonoGame.Extended
         public static void Transform(ref BoundingRectangle boundingRectangle,
             ref Matrix2 transformMatrix, out BoundingRectangle result)
         {
-            PrimitivesHelper.TransformRectangle(ref boundingRectangle.Center, ref boundingRectangle.HalfExtents, ref transformMatrix);
+            PrimitivesHelper.TransformRectangle(ref boundingRectangle.Center, ref boundingRectangle.halfExtents, ref transformMatrix);
             result.Center = boundingRectangle.Center;
-            result.HalfExtents = boundingRectangle.HalfExtents;
+            result.halfExtents = boundingRectangle.halfExtents;
         }
 
         /// <summary>
@@ -174,10 +185,10 @@ namespace MonoGame.Extended
         {
             // Real-Time Collision Detection, Christer Ericson, 2005. Chapter 6.5; Bounding Volume Hierarchies - Merging Bounding Volumes. pg 267
 
-            var firstMinimum = first.Center - first.HalfExtents;
-            var firstMaximum = first.Center + first.HalfExtents;
-            var secondMinimum = second.Center - second.HalfExtents;
-            var secondMaximum = second.Center + second.HalfExtents;
+            var firstMinimum = first.Center - first.halfExtents;
+            var firstMaximum = first.Center + first.halfExtents;
+            var secondMinimum = second.Center - second.halfExtents;
+            var secondMaximum = second.Center + second.halfExtents;
 
             var minimum = Point2.Minimum(firstMinimum, secondMinimum);
             var maximum = Point2.Maximum(firstMaximum, secondMaximum);
@@ -228,10 +239,10 @@ namespace MonoGame.Extended
         public static void Intersection(ref BoundingRectangle first,
             ref BoundingRectangle second, out BoundingRectangle result)
         {
-            var firstMinimum = first.Center - first.HalfExtents;
-            var firstMaximum = first.Center + first.HalfExtents;
-            var secondMinimum = second.Center - second.HalfExtents;
-            var secondMaximum = second.Center + second.HalfExtents;
+            var firstMinimum = first.Center - first.halfExtents;
+            var firstMaximum = first.Center + first.halfExtents;
+            var secondMinimum = second.Center - second.halfExtents;
+            var secondMaximum = second.Center + second.halfExtents;
 
             var minimum = Point2.Maximum(firstMinimum, secondMinimum);
             var maximum = Point2.Minimum(firstMaximum, secondMaximum);
@@ -289,7 +300,7 @@ namespace MonoGame.Extended
             // Real-Time Collision Detection, Christer Ericson, 2005. Chapter 4.2; Bounding Volumes - Axis-aligned Bounding Boxes (AABBs). pg 80
 
             var distance = first.Center - second.Center;
-            var radii = first.HalfExtents + second.HalfExtents;
+            var radii = first.halfExtents + second.halfExtents;
             return Math.Abs(distance.X) <= radii.X && Math.Abs(distance.Y) <= radii.Y;
         }
 
@@ -344,7 +355,7 @@ namespace MonoGame.Extended
         {
             var boundingRectangle = CreateFrom(points);
             Center = boundingRectangle.Center;
-            HalfExtents = boundingRectangle.HalfExtents;
+            halfExtents = boundingRectangle.halfExtents;
         }
 
         /// <summary>
@@ -362,7 +373,7 @@ namespace MonoGame.Extended
             // Real-Time Collision Detection, Christer Ericson, 2005. Chapter 4.2; Bounding Volumes - Axis-aligned Bounding Boxes (AABBs). pg 78
 
             var distance = boundingRectangle.Center - point;
-            var radii = boundingRectangle.HalfExtents;
+            var radii = boundingRectangle.halfExtents;
 
             return (Math.Abs(distance.X) <= radii.X) && (Math.Abs(distance.Y) <= radii.Y);
         }
@@ -402,7 +413,7 @@ namespace MonoGame.Extended
         /// <returns>The squared distance from this <see cref="BoundingRectangle"/> to the <paramref name="point"/>.</returns>
         public float SquaredDistanceTo(Point2 point)
         {
-            return PrimitivesHelper.SquaredDistanceToPointFromRectangle(Center - HalfExtents, Center + HalfExtents, point);
+            return PrimitivesHelper.SquaredDistanceToPointFromRectangle(Center - halfExtents, Center + halfExtents, point);
         }
 
         /// <summary>
@@ -414,19 +425,19 @@ namespace MonoGame.Extended
         public Point2 ClosestPointTo(Point2 point)
         {
             Point2 result;
-            PrimitivesHelper.ClosestPointToPointFromRectangle(Center - HalfExtents, Center + HalfExtents, point, out result);
+            PrimitivesHelper.ClosestPointToPointFromRectangle(Center - halfExtents, Center + halfExtents, point, out result);
             return result;
         }
 
         /// <summary>
         ///     Compares two <see cref="BoundingRectangle" /> structures. The result specifies whether the values of the
-        ///     <see cref="Center" /> and <see cref="HalfExtents" /> fields of the two <see cref="BoundingRectangle" /> structures
+        ///     <see cref="Center" /> and <see cref="halfExtents" /> fields of the two <see cref="BoundingRectangle" /> structures
         ///     are equal.
         /// </summary>
         /// <param name="first">The first bounding rectangle.</param>
         /// <param name="second">The second bounding rectangle.</param>
         /// <returns>
-        ///     <c>true</c> if the <see cref="Center" /> and <see cref="HalfExtents" /> fields of the two
+        ///     <c>true</c> if the <see cref="Center" /> and <see cref="halfExtents" /> fields of the two
         ///     <see cref="BoundingRectangle" /> structures are equal; otherwise, <c>false</c>.
         /// </returns>
         public static bool operator ==(BoundingRectangle first, BoundingRectangle second)
@@ -436,13 +447,13 @@ namespace MonoGame.Extended
 
         /// <summary>
         ///     Compares two <see cref="BoundingRectangle" /> structures. The result specifies whether the values of the
-        ///     <see cref="Center" /> and <see cref="HalfExtents" /> fields of the two <see cref="BoundingRectangle" /> structures
+        ///     <see cref="Center" /> and <see cref="halfExtents" /> fields of the two <see cref="BoundingRectangle" /> structures
         ///     are unequal.
         /// </summary>
         /// <param name="first">The first bounding rectangle.</param>
         /// <param name="second">The second bounding rectangle.</param>
         /// <returns>
-        ///     <c>true</c> if the <see cref="Center" /> and <see cref="HalfExtents" /> fields of the two
+        ///     <c>true</c> if the <see cref="Center" /> and <see cref="halfExtents" /> fields of the two
         ///     <see cref="BoundingRectangle" /> structures are unequal; otherwise, <c>false</c>.
         /// </returns>
         public static bool operator !=(BoundingRectangle first, BoundingRectangle second)
@@ -475,7 +486,7 @@ namespace MonoGame.Extended
         /// </returns>
         public bool Equals(ref BoundingRectangle boundingRectangle)
         {
-            return (boundingRectangle.Center == Center) && (boundingRectangle.HalfExtents == HalfExtents);
+            return (boundingRectangle.Center == Center) && (boundingRectangle.halfExtents == halfExtents);
         }
 
         /// <summary>
@@ -503,7 +514,7 @@ namespace MonoGame.Extended
         {
             unchecked
             {
-                return (Center.GetHashCode() * 397) ^ HalfExtents.GetHashCode();
+                return (Center.GetHashCode() * 397) ^ halfExtents.GetHashCode();
             }
         }
 
@@ -530,9 +541,9 @@ namespace MonoGame.Extended
         /// </returns>
         public static implicit operator Rectangle(BoundingRectangle boundingRectangle)
         {
-            var minimum = boundingRectangle.Center - boundingRectangle.HalfExtents;
-            return new Rectangle((int)minimum.X, (int)minimum.Y, (int)boundingRectangle.HalfExtents.X * 2,
-                (int)boundingRectangle.HalfExtents.Y * 2);
+            var minimum = boundingRectangle.Center - boundingRectangle.halfExtents;
+            return new Rectangle((int)minimum.X, (int)minimum.Y, (int)boundingRectangle.halfExtents.X * 2,
+                (int)boundingRectangle.halfExtents.Y * 2);
         }
 
         /// <summary>
@@ -558,9 +569,9 @@ namespace MonoGame.Extended
         /// </returns>
         public static implicit operator RectangleF(BoundingRectangle boundingRectangle)
         {
-            var minimum = boundingRectangle.Center - boundingRectangle.HalfExtents;
-            return new RectangleF(minimum.X, minimum.Y, boundingRectangle.HalfExtents.X * 2,
-                boundingRectangle.HalfExtents.Y * 2);
+            var minimum = boundingRectangle.Center - boundingRectangle.halfExtents;
+            return new RectangleF(minimum.X, minimum.Y, boundingRectangle.halfExtents.X * 2,
+                boundingRectangle.halfExtents.Y * 2);
         }
 
         /// <summary>
@@ -571,7 +582,7 @@ namespace MonoGame.Extended
         /// </returns>
         public override string ToString()
         {
-            return $"Centre: {Center}, Radii: {HalfExtents}";
+            return $"Centre: {Center}, Radii: {halfExtents}";
         }
 
         internal string DebugDisplayString => ToString();

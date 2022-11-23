@@ -41,6 +41,10 @@ namespace MonoGame.Extended
             set => Center = value;
         }
 
+        public Vector2 HalfExtents => new Vector2(Radius);
+        public float HalfExtentsX => Radius;
+        public float HalfExtentsY => Radius;
+
         /// <summary>
         ///     Gets the distance from a point to the opposite point, both on the boundary of this <see cref="CircleF" />.
         /// </summary>
